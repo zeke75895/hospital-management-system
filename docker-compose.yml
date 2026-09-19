@@ -24,6 +24,7 @@ services:
       DB_NAME: ${DB_NAME:-hospital}
       DB_USERNAME: ${DB_USERNAME:-hospital}
       DB_PASSWORD: ${DB_PASSWORD:-hospital}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-hospital-jwt-secret-please-override-in-prod}
     ports:
       - "8080:8080"
     depends_on:

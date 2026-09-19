@@ -3,13 +3,16 @@ package com.example.hospital_management_system.exception;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -67,5 +70,31 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
         return new ErrorResponse("This appointment was modified by another request; please retry.");
+    }
+
+    // The three handlers below only became reachable once actual HTTP requests entered the
+    // picture via controllers - none of them could be thrown by a direct service call. Without
+    // these, each would fall through to Spring Boot's default /error handler and return its
+    // generic error body instead of our ErrorResponse shape.
+
+    /** Malformed JSON, or a request body that doesn't match the target DTO's shape at all. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUnreadableBody(HttpMessageNotReadableException ex) {
+        return new ErrorResponse("Malformed request body");
+    }
+
+    /** E.g. GET /api/patients/abc, where {id} can't be parsed as a Long. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return new ErrorResponse("Invalid value for parameter '" + ex.getName() + "': " + ex.getValue());
+    }
+
+    /** E.g. GET /api/doctors/{id}/availability without the required from/to query params. */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParam(MissingServletRequestParameterException ex) {
+        return new ErrorResponse("Missing required parameter: " + ex.getParameterName());
     }
 }

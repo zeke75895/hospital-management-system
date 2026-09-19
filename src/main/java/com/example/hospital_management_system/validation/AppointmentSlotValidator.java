@@ -1,13 +1,9 @@
 package com.example.hospital_management_system.validation;
 
 import com.example.hospital_management_system.dto.request.AppointmentRequest;
-import com.example.hospital_management_system.entity.Schedule;
 import com.example.hospital_management_system.repository.ScheduleRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -30,13 +26,6 @@ public class AppointmentSlotValidator
             return true;
         }
 
-        LocalDateTime scheduledAt = request.getScheduledAt();
-        LocalTime time = scheduledAt.toLocalTime();
-
-        List<Schedule> schedules = scheduleRepository.findSchedulesForDoctorOnDate(
-                request.getDoctorId(), scheduledAt.toLocalDate());
-
-        return schedules.stream()
-                .anyMatch(s -> !time.isBefore(s.getStartTime()) && !time.isAfter(s.getEndTime()));
+        return scheduleRepository.existsSlotCoveringTime(request.getDoctorId(), request.getScheduledAt());
     }
 }

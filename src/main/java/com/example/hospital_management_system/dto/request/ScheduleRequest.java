@@ -11,15 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// No doctorId field: this is only ever submitted via POST /api/doctors/{doctorId}/schedules, so
+// the doctor comes from the URL path, the single source of truth - not duplicated in the body
+// where it could disagree with the path.
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ScheduleRequest {
-
-    @NotNull
-    private Long doctorId;
 
     private DayOfWeek dayOfWeek;
 

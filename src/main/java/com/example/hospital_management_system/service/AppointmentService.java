@@ -16,6 +16,7 @@ import com.example.hospital_management_system.repository.DoctorRepository;
 import com.example.hospital_management_system.repository.PatientRepository;
 import com.example.hospital_management_system.repository.ScheduleRepository;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -150,6 +151,19 @@ public class AppointmentService {
     public List<AppointmentResponse> listAppointmentsForDoctor(
             Long doctorId, LocalDateTime start, LocalDateTime end) {
         return appointmentRepository.findByDoctorIdAndScheduledAtBetween(doctorId, start, end).stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    /** Backs GET /api/appointments?doctorId=&patientId=&date= - doctorId, patientId, and date are
+     * all optional filters; date (a single day) is converted to a [dayStart, dayEnd) range here
+     * before hitting the repository, since AppointmentRepository.search() works in
+     * LocalDateTime bounds rather than casting scheduledAt to a date in JPQL. */
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> searchAppointments(Long doctorId, Long patientId, LocalDate date) {
+        LocalDateTime dayStart = date == null ? null : date.atStartOfDay();
+        LocalDateTime dayEnd = date == null ? null : date.plusDays(1).atStartOfDay();
+        return appointmentRepository.search(doctorId, patientId, dayStart, dayEnd).stream()
                 .map(appointmentMapper::toResponse)
                 .toList();
     }

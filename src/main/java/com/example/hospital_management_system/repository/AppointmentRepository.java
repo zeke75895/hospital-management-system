@@ -49,4 +49,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("doctorId") Long doctorId,
             @Param("scheduledAt") LocalDateTime scheduledAt,
             @Param("status") AppointmentStatus status);
+
+    /**
+     * Backs GET /api/appointments?doctorId=&patientId=&date= - every filter is optional, so each
+     * clause is skipped (via IS NULL) when its parameter wasn't supplied. dayStart/dayEnd are the
+     * [start, end) bounds of the requested date, computed by the caller - kept as a plain range
+     * comparison rather than a CAST(scheduledAt AS date) for portability across H2 and Postgres.
+     */
+    @Query(
+            "SELECT a FROM Appointment a WHERE "
+                    + "(:doctorId IS NULL OR a.doctor.id = :doctorId) AND "
+                    + "(:patientId IS NULL OR a.patient.id = :patientId) AND "
+                    + "(:dayStart IS NULL OR a.scheduledAt >= :dayStart) AND "
+                    + "(:dayEnd IS NULL OR a.scheduledAt < :dayEnd)")
+    List<Appointment> search(
+            @Param("doctorId") Long doctorId,
+            @Param("patientId") Long patientId,
+            @Param("dayStart") LocalDateTime dayStart,
+            @Param("dayEnd") LocalDateTime dayEnd);
 }

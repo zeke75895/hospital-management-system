@@ -22,8 +22,8 @@ public class ScheduleService {
     private final ScheduleMapper scheduleMapper;
 
     @Transactional
-    public ScheduleResponse createSchedule(ScheduleRequest request) {
-        Doctor doctor = findDoctorOrThrow(request.getDoctorId());
+    public ScheduleResponse createSchedule(Long doctorId, ScheduleRequest request) {
+        Doctor doctor = findDoctorOrThrow(doctorId);
         Schedule saved = scheduleRepository.save(scheduleMapper.toEntity(request, doctor));
         return scheduleMapper.toResponse(saved);
     }
@@ -41,9 +41,9 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleResponse updateSchedule(Long id, ScheduleRequest request) {
+    public ScheduleResponse updateSchedule(Long id, Long doctorId, ScheduleRequest request) {
         Schedule schedule = findScheduleOrThrow(id);
-        Doctor doctor = findDoctorOrThrow(request.getDoctorId());
+        Doctor doctor = findDoctorOrThrow(doctorId);
         schedule.setDoctor(doctor);
         schedule.setDayOfWeek(request.getDayOfWeek());
         schedule.setSpecificDate(request.getSpecificDate());

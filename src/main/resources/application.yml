@@ -3,6 +3,14 @@ spring:
     name: hospital-management-system
   profiles:
     active: dev
+  data:
+    web:
+      pageable:
+        # Raw PageImpl serialization isn't a stable JSON contract (Spring Data logs a warning
+        # if you return Page<T> from a controller without this). via-dto uses the documented
+        # {content, page: {size, number, totalElements, totalPages}} shape instead - relevant
+        # now that PatientController.getPatientHistory actually returns a Page over HTTP.
+        serialization-mode: via-dto
 
 springdoc:
   swagger-ui:

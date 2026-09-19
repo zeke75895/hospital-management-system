@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: hospital-management-system
+  profiles:
+    active: dev
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+server:
+  port: 8080

@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -96,5 +98,41 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMissingParam(MissingServletRequestParameterException ex) {
         return new ErrorResponse("Missing required parameter: " + ex.getParameterName());
+    }
+
+    @ExceptionHandler(DuplicateUsernameException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateUsername(DuplicateUsernameException ex) {
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    /**
+     * Covers AuthenticationManager.authenticate() failures in AuthService.login() - wrong
+     * username or password both surface as BadCredentialsException (a subtype of this), never
+     * distinguished, so a caller can't use the error to enumerate which usernames exist. This
+     * handler catches it because login() calls authenticate() directly inside a normal service
+     * call, which DOES flow through ordinary Spring MVC exception handling. Contrast with
+     * RestAuthenticationEntryPoint, which handles the OTHER 401 case - a request with no/invalid
+     * JWT hitting a protected URL, rejected at the security-filter level before any controller
+     * runs, which never reaches this class at all.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleAuthenticationFailure(AuthenticationException ex) {
+        return new ErrorResponse("Invalid username or password");
+    }
+
+    /**
+     * Covers @PreAuthorize denials (e.g. a PATIENT calling DELETE /api/appointments/{id} on
+     * someone else's appointment) - thrown from inside the controller invocation, so it flows
+     * through normal Spring MVC exception handling same as AuthenticationException above.
+     * Contrast with RestAccessDeniedHandler, which handles the URL-pattern-rule case (e.g. a
+     * PATIENT calling POST /api/doctors), rejected at the filter level before reaching a
+     * controller, and therefore also never reaching this class.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(AccessDeniedException ex) {
+        return new ErrorResponse("Access denied");
     }
 }

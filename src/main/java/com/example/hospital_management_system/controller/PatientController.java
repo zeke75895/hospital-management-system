@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,9 +38,19 @@ public class PatientController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // This is exactly the case URL-based rules can't express: SecurityConfig can say "/api/patients/**
+    // requires authentication" for the whole path, but it has no way to compare the :id in this
+    // specific request against which patient the caller actually is - that comparison needs the
+    // resolved path variable and the authenticated principal's data together, which is what
+    // @PreAuthorize's SpEL evaluates against. #id binds to the @PathVariable of the same name
+    // (available because the compiler retains parameter names - Spring Boot's parent POM enables
+    // -parameters by default); authentication.principal is the AppUserDetails set by
+    // JwtAuthenticationFilter.
     @GetMapping("/{id}")
-    @Operation(summary = "Get a patient by id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR') or #id == authentication.principal.patientId")
+    @Operation(summary = "Get a patient by id (a PATIENT may only fetch their own record)")
     @ApiResponse(responseCode = "200", description = "Patient found")
+    @ApiResponse(responseCode = "403", description = "A PATIENT tried to read another patient's record")
     @ApiResponse(responseCode = "404", description = "Patient not found")
     public PatientResponse getPatient(@PathVariable Long id) {
         return patientService.getPatient(id);
@@ -50,8 +61,10 @@ public class PatientController {
     // on top of, not a replacement for, PatientRepository's scheduledAt-desc ordering - that
     // ordering is a business decision (most recent visit first), not something callers override.
     @GetMapping("/{id}/history")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR') or #id == authentication.principal.patientId")
     @Operation(summary = "Get a patient's paginated appointment history, most recent first")
     @ApiResponse(responseCode = "200", description = "History page returned")
+    @ApiResponse(responseCode = "403", description = "A PATIENT tried to read another patient's history")
     @ApiResponse(responseCode = "404", description = "Patient not found")
     public Page<AppointmentResponse> getPatientHistory(@PathVariable Long id, Pageable pageable) {
         return patientService.getPatientHistory(id, pageable);

@@ -6,6 +6,7 @@ import com.example.hospital_management_system.dto.response.DoctorResponse;
 import com.example.hospital_management_system.service.DoctorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/doctors")
 @RequiredArgsConstructor
 @Tag(name = "Doctors")
+@SecurityRequirement(name = "bearerAuth")
 public class DoctorController {
 
     private final DoctorService doctorService;

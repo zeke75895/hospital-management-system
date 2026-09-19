@@ -5,6 +5,7 @@ import com.example.hospital_management_system.dto.response.ScheduleResponse;
 import com.example.hospital_management_system.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/doctors/{doctorId}/schedules")
 @RequiredArgsConstructor
 @Tag(name = "Schedules")
+@SecurityRequirement(name = "bearerAuth")
 public class ScheduleController {
 
     private final ScheduleService scheduleService;

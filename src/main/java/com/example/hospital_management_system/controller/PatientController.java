@@ -6,6 +6,7 @@ import com.example.hospital_management_system.dto.response.PatientResponse;
 import com.example.hospital_management_system.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/patients")
 @RequiredArgsConstructor
 @Tag(name = "Patients")
+@SecurityRequirement(name = "bearerAuth")
 public class PatientController {
 
     private final PatientService patientService;

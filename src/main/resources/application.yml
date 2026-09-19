@@ -20,3 +20,10 @@ springdoc:
 
 server:
   port: 8080
+
+jwt:
+  # Dev-only default - HS256 needs >= 256 bits once UTF-8 encoded, so this is deliberately long.
+  # Prod MUST override via the JWT_SECRET env var with a real, non-committed secret; never rely
+  # on this fallback outside local dev, same treatment as DB_PASSWORD in application-prod.yml.
+  secret: ${JWT_SECRET:dev-only-change-me-hospital-jwt-secret-please-override-in-prod}
+  expiration-ms: 3600000 # 1 hour

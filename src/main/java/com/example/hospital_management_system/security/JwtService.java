@@ -25,12 +25,24 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
+    // patientId/doctorId are included purely for the client's convenience (e.g. the frontend
+    // decoding its own token to know "who am I" without an extra round trip) - never for
+    // authorization. A JWT payload is base64, not encrypted, so it was already readable by
+    // whoever holds the token; adding these doesn't change what's trusted server-side. Every
+    // @PreAuthorize/@AppointmentSecurity check still re-derives these from the database via
+    // UserDetailsServiceImpl on every request, exactly as before.
     public String generateToken(AppUserDetails principal) {
         Instant now = Instant.now();
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(principal.getUsername())
-                .claim("role", principal.getRole().name())
-                .issuedAt(Date.from(now))
+                .claim("role", principal.getRole().name());
+        if (principal.getPatientId() != null) {
+            builder.claim("patientId", principal.getPatientId());
+        }
+        if (principal.getDoctorId() != null) {
+            builder.claim("doctorId", principal.getDoctorId());
+        }
+        return builder.issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(expirationMs)))
                 .signWith(key)
                 .compact();

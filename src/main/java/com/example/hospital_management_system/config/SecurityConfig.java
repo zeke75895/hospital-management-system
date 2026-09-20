@@ -45,6 +45,11 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                         .permitAll()
+                        // The static frontend (src/main/resources/static/) - it does its own login
+                        // screen and calls /api/** with a JWT afterward, so the page shell itself
+                        // has to be reachable before any authentication exists.
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**")
+                        .permitAll()
                         // Pure role checks, no per-resource identity involved - a URL pattern is
                         // sufficient and cheaper than a method-security check for these.
                         .requestMatchers(HttpMethod.POST, "/api/patients/**")

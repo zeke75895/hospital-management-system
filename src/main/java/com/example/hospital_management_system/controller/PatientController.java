@@ -48,6 +48,20 @@ public class PatientController {
     // (available because the compiler retains parameter names - Spring Boot's parent POM enables
     // -parameters by default); authentication.principal is the AppUserDetails set by
     // JwtAuthenticationFilter.
+    // No ownership case here - unlike getPatient/getPatientHistory below, this is a plain role
+    // check (can this caller browse the whole patient list at all?), so it's @PreAuthorize with a
+    // role expression rather than an ownership comparison. It's method-level rather than a
+    // SecurityConfig URL rule only because GET /api/patients/{id} (ownership-checked) and GET
+    // /api/patients (role-checked) share this same controller and need different logic - keeping
+    // both here avoids splitting one controller's authorization across two places.
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR')")
+    @Operation(summary = "List patients (staff only - a PATIENT has no use for this and no access to it)")
+    @ApiResponse(responseCode = "200", description = "Page of patients returned")
+    public Page<PatientResponse> listPatients(Pageable pageable) {
+        return patientService.listPatients(pageable);
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR') or #id == authentication.principal.patientId")
     @Operation(summary = "Get a patient by id (a PATIENT may only fetch their own record)")

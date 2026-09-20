@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,17 @@ public class DoctorController {
     public ResponseEntity<DoctorResponse> createDoctor(@Valid @RequestBody DoctorRequest request) {
         DoctorResponse response = doctorService.createDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // No @PreAuthorize needed: doctor records aren't patient-owned data, so there's no ownership
+    // case here, just "must be logged in" - already covered by SecurityConfig's blanket
+    // .anyRequest().authenticated() rule for every role including PATIENT (they need to browse
+    // doctors to pick one when booking).
+    @GetMapping
+    @Operation(summary = "List doctors")
+    @ApiResponse(responseCode = "200", description = "Page of doctors returned")
+    public Page<DoctorResponse> listDoctors(Pageable pageable) {
+        return doctorService.listDoctors(pageable);
     }
 
     @GetMapping("/{id}")

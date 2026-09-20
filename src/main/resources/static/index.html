@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ocean Bay Clinic</title>
+<meta name="description" content="A hand-drawn demo front end for the Hospital Management System API" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="app-header sketch">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M6 40 C 14 32, 20 32, 28 40 C 36 48, 42 48, 50 40 C 54 36, 56 36, 58 38"
+            stroke="#0f4c5c" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M6 48 C 14 40, 20 40, 28 48 C 36 56, 42 56, 50 48 C 54 44, 56 44, 58 46"
+            stroke="#1c7293" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M32 10 C 24 10, 20 16, 22 22 C 24 28, 30 26, 32 20 C 34 26, 40 28, 42 22 C 44 16, 40 10, 32 10 Z"
+            stroke="#22323f" stroke-width="2.5" stroke-linejoin="round" fill="#9bddc7"/>
+    </svg>
+    <div>
+      <h1>Ocean Bay Clinic</h1>
+      <p class="tagline">a small hospital scheduling demo</p>
+    </div>
+  </div>
+  <div id="userBadge" class="user-badge hidden">
+    <span id="userName"></span>
+    <span id="userRolePill" class="role-pill"></span>
+    <button id="logoutBtn" class="btn btn-small">Log out</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===================== AUTH SCREEN ===================== -->
+  <main id="authScreen" class="auth-screen">
+    <nav class="tabs sketch" role="tablist" aria-label="Authentication">
+      <button class="tab-btn active" id="loginTabBtn" data-tab="login" role="tab" aria-selected="true">Log in</button>
+      <button class="tab-btn" id="registerTabBtn" data-tab="register" role="tab" aria-selected="false">Register</button>
+    </nav>
+
+    <form id="loginForm" class="sketch auth-form">
+      <h2>Welcome back</h2>
+      <label>Username
+        <input type="text" id="loginUsername" autocomplete="username" required />
+      </label>
+      <label>Password
+        <input type="password" id="loginPassword" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn btn-primary">Log in</button>
+    </form>
+
+    <form id="registerForm" class="sketch auth-form hidden">
+      <h2>Create an account</h2>
+      <label>Username
+        <input type="text" id="registerUsername" autocomplete="username" required />
+      </label>
+      <label>Password <span class="hint" style="display:inline">(8+ characters)</span>
+        <input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required />
+      </label>
+      <label>Role
+        <select id="registerRole">
+          <option value="PATIENT">Patient</option>
+          <option value="DOCTOR">Doctor</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </label>
+      <label id="patientIdField">Patient ID
+        <input type="number" id="registerPatientId" min="1" />
+      </label>
+      <label id="doctorIdField" class="hidden">Doctor ID
+        <input type="number" id="registerDoctorId" min="1" />
+      </label>
+      <p class="hint">Registering links a login to an <em>existing</em> Patient/Doctor record by id.
+        First time here? Register as Admin (no id needed), log in, then use the Doctors/Patients
+        tabs to create records and note their ids.</p>
+      <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+  </main>
+
+  <!-- ===================== APP SCREEN ===================== -->
+  <main id="appScreen" class="hidden">
+    <nav class="tabs sketch" id="dashboardTabs" role="tablist" aria-label="Sections">
+      <button class="tab-btn active" data-panel="doctors" role="tab" aria-selected="true">Doctors</button>
+      <button class="tab-btn staff-only" data-panel="patients" role="tab" aria-selected="false">Patients</button>
+      <button class="tab-btn" data-panel="book" role="tab" aria-selected="false">Book</button>
+      <button class="tab-btn" data-panel="appointments" role="tab" aria-selected="false">Appointments</button>
+    </nav>
+
+    <!-- Doctors -->
+    <section id="panel-doctors" class="panel">
+      <div class="panel-header">
+        <h2>🩺 Doctors</h2>
+        <button id="showAddDoctorBtn" class="btn btn-small staff-only">+ Add doctor</button>
+      </div>
+      <form id="addDoctorForm" class="sketch hidden">
+        <div class="form-row">
+          <label>First name<input type="text" id="docFirstName" required /></label>
+          <label>Last name<input type="text" id="docLastName" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Specialty<input type="text" id="docSpecialty" required /></label>
+          <label>Email<input type="email" id="docEmail" required /></label>
+        </div>
+        <label>License number<input type="text" id="docLicense" required /></label>
+        <button type="submit" class="btn btn-primary">Create doctor</button>
+        <button type="button" class="btn btn-ghost" data-close="addDoctorForm">Cancel</button>
+      </form>
+      <form id="addScheduleForm" class="sketch hidden">
+        <h3>Add a schedule window</h3>
+        <input type="hidden" id="scheduleDoctorId" />
+        <p class="hint" id="scheduleDoctorLabel"></p>
+        <label>Day of week
+          <select id="scheduleDayOfWeek">
+            <option>MONDAY</option><option>TUESDAY</option><option>WEDNESDAY</option>
+            <option>THURSDAY</option><option>FRIDAY</option><option>SATURDAY</option><option>SUNDAY</option>
+          </select>
+        </label>
+        <div class="form-row">
+          <label>Start time<input type="time" id="scheduleStart" value="09:00" required /></label>
+          <label>End time<input type="time" id="scheduleEnd" value="17:00" required /></label>
+        </div>
+        <button type="submit" class="btn btn-primary">Add schedule</button>
+        <button type="button" class="btn btn-ghost" data-close="addScheduleForm">Cancel</button>
+      </form>
+      <div id="doctorsList" class="card-grid"></div>
+    </section>
+
+    <!-- Patients -->
+    <section id="panel-patients" class="panel hidden staff-only">
+      <div class="panel-header">
+        <h2>🧑 Patients</h2>
+        <button id="showAddPatientBtn" class="btn btn-small">+ Add patient</button>
+      </div>
+      <form id="addPatientForm" class="sketch hidden">
+        <div class="form-row">
+          <label>First name<input type="text" id="patFirstName" required /></label>
+          <label>Last name<input type="text" id="patLastName" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Date of birth<input type="date" id="patDob" required /></label>
+          <label>Phone<input type="text" id="patPhone" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Email<input type="email" id="patEmail" required /></label>
+          <label>Medical record #<input type="text" id="patMrn" required /></label>
+        </div>
+        <button type="submit" class="btn btn-primary">Create patient</button>
+        <button type="button" class="btn btn-ghost" data-close="addPatientForm">Cancel</button>
+      </form>
+      <div id="patientsList" class="card-grid"></div>
+    </section>
+
+    <!-- Book appointment -->
+    <section id="panel-book" class="panel hidden">
+      <h2>📅 Book an appointment</h2>
+      <form id="bookForm" class="sketch">
+        <label class="staff-only">Patient
+          <select id="bookPatientSelect"></select>
+        </label>
+        <label>Doctor
+          <select id="bookDoctorSelect" required></select>
+        </label>
+        <label>Date &amp; time
+          <input type="datetime-local" id="bookScheduledAt" required />
+        </label>
+        <label>Reason
+          <textarea id="bookReason" required maxlength="500"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary">Book appointment</button>
+      </form>
+
+      <form id="concurrencyForm" class="sketch">
+        <h3>⚡ Concurrency demo</h3>
+        <p class="hint">Fires several simultaneous booking requests at the exact same doctor + time
+          using the form above, to show the pessimistic-locking guard in action: exactly one should
+          succeed and the rest should come back as a double-booking conflict.</p>
+        <label>Number of simultaneous requests
+          <input type="number" id="concurrencyCount" min="2" max="10" value="5" />
+        </label>
+        <button type="submit" class="btn btn-small">Run concurrency test</button>
+      </form>
+    </section>
+
+    <!-- Appointments -->
+    <section id="panel-appointments" class="panel hidden">
+      <div class="panel-header">
+        <h2>🗒️ Appointments</h2>
+        <div class="filters staff-only">
+          <input type="number" id="filterDoctorId" placeholder="Doctor ID" />
+          <input type="number" id="filterPatientId" placeholder="Patient ID" />
+          <input type="date" id="filterDate" />
+          <button id="applyFiltersBtn" class="btn btn-small">Filter</button>
+          <button id="clearFiltersBtn" class="btn btn-small btn-ghost">Clear</button>
+        </div>
+      </div>
+      <div id="appointmentsList" class="card-grid"></div>
+    </section>
+  </main>
+
+</div>
+
+<!-- toast -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- modal -->
+<div id="modalBackdrop" class="modal-backdrop hidden">
+  <div class="modal-content sketch" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button id="closeModalBtn" class="modal-close" aria-label="Close">&times;</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

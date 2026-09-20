@@ -1,0 +1,543 @@
+/* ==========================================================================
+   Ocean Bay Clinic - hand-drawn / pencil-on-paper theme
+   No framework: plain CSS, a couple of Google Fonts, one inline SVG noise
+   texture for the paper background, and hand-rolled "sketchy" borders via
+   asymmetric border-radius + an offset ::before outline.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Gochi+Hand&display=swap');
+
+:root {
+  --paper: #f3ecd9;
+  --paper-card: #faf5e6;
+  --paper-shadow: #e2d5ae;
+
+  --ink: #22323f;
+  --ink-soft: #3c5568;
+  --muted: #6b7f8a;
+
+  --ocean-deep: #0f4c5c;
+  --ocean: #1c7293;
+  --ocean-light: #6fb8ce;
+  --seafoam: #9bddc7;
+
+  --coral: #f2785c;
+  --coral-dark: #c85338;
+
+  --success: #3f8c5f;
+  --success-dark: #2c6b45;
+  --danger: #c1443a;
+  --danger-dark: #93312a;
+
+  --font-title: 'Gochi Hand', cursive;
+  --font-hand: 'Patrick Hand', cursive;
+
+  --radius-a: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-b: 20px 240px 20px 240px / 240px 20px 240px 20px;
+  --radius-c: 18px 22px 20px 24px / 22px 18px 24px 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-hand);
+  font-size: 18px;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at top left, rgba(15, 76, 92, 0.06), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(242, 120, 92, 0.05), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='paper-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.2 0 0 0 0 0.24 0 0 0 0.05 0'%3E%3C/feColorMatrix%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper-noise)'%3E%3C/rect%3E%3C/svg%3E");
+  background-size: auto, auto, 300px 300px;
+}
+
+h1, h2, h3 {
+  margin: 0 0 0.4em;
+  color: var(--ocean-deep);
+}
+
+p {
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+a {
+  color: var(--ocean);
+}
+
+/* Hide staff-only UI for logged-in patients */
+body.role-patient .staff-only {
+  display: none !important;
+}
+
+/* ---- focus & motion accessibility -------------------------------------- */
+
+:focus-visible {
+  outline: 3px dashed var(--coral);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .btn:hover, .card:hover, .sketch:hover {
+    transform: none !important;
+  }
+}
+
+/* ---- sketchy box component ---------------------------------------------
+   A hand-drawn box is never a perfect rectangle: lopsided border-radius
+   plus a second, thinner, slightly-offset outline (::before) mimics a
+   pencil stroke drawn twice, not quite lining up.
+   -------------------------------------------------------------------------- */
+
+.sketch {
+  position: relative;
+  background: var(--paper-card);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-a);
+  box-shadow: 4px 5px 0 rgba(15, 76, 92, 0.18);
+}
+
+.sketch::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 1.5px solid var(--ocean);
+  border-radius: var(--radius-b);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.sketch-alt {
+  border-radius: var(--radius-b);
+}
+
+.sketch-alt::before {
+  border-radius: var(--radius-a);
+}
+
+/* ---- layout --------------------------------------------------------------*/
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px auto 28px;
+  padding: 14px 22px;
+  max-width: 980px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand svg {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.brand h1 {
+  font-family: var(--font-title);
+  font-size: 2.1rem;
+  margin: 0;
+  line-height: 1;
+}
+
+.tagline {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.role-pill {
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: var(--seafoam);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.role-pill.role-DOCTOR { background: var(--ocean-light); }
+.role-pill.role-ADMIN { background: var(--coral); color: #fff; border-color: var(--coral-dark); }
+
+/* ---- buttons ---------------------------------------------------------- */
+
+.btn {
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  padding: 0.5em 1.2em;
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-c);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translate(-1px, -2px) rotate(-0.6deg);
+  box-shadow: 4px 5px 0 var(--ink);
+}
+
+.btn:active {
+  transform: translate(2px, 2px) rotate(0deg);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-primary {
+  background: var(--ocean);
+  color: var(--paper-card);
+  border-color: var(--ocean-deep);
+  box-shadow: 3px 3px 0 var(--ocean-deep);
+}
+.btn-primary:hover { box-shadow: 4px 5px 0 var(--ocean-deep); }
+.btn-primary:active { box-shadow: 1px 1px 0 var(--ocean-deep); }
+
+.btn-danger {
+  background: var(--coral);
+  color: #fff;
+  border-color: var(--coral-dark);
+  box-shadow: 3px 3px 0 var(--coral-dark);
+}
+.btn-danger:hover { box-shadow: 4px 5px 0 var(--coral-dark); }
+.btn-danger:active { box-shadow: 1px 1px 0 var(--coral-dark); }
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success-dark);
+  box-shadow: 3px 3px 0 var(--success-dark);
+}
+.btn-success:hover { box-shadow: 4px 5px 0 var(--success-dark); }
+.btn-success:active { box-shadow: 1px 1px 0 var(--success-dark); }
+
+.btn-small {
+  font-size: 0.85rem;
+  padding: 0.35em 0.9em;
+}
+
+.btn-ghost {
+  background: transparent;
+  box-shadow: none;
+}
+.btn-ghost:hover {
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* ---- forms -------------------------------------------------------------- */
+
+label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+input, select, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  padding: 0.5em 0.7em;
+  border: 2px solid var(--ink);
+  border-radius: 10px 14px 10px 14px / 14px 10px 14px 10px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: -6px 0 14px;
+}
+
+.field-error {
+  color: var(--danger-dark);
+  font-size: 0.85rem;
+  margin: -10px 0 14px;
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.form-row > * {
+  flex: 1;
+  min-width: 160px;
+}
+
+form.sketch {
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+/* ---- auth screen ---------------------------------------------------------*/
+
+.auth-screen {
+  max-width: 460px;
+  margin: 10px auto 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  flex: 1;
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  padding: 0.5em 0.6em;
+  background: transparent;
+  border: 2px dashed transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.tab-btn.active {
+  background: var(--ocean);
+  color: var(--paper-card);
+  border-color: var(--ocean-deep);
+}
+
+.auth-form h2 {
+  text-align: center;
+}
+
+/* ---- dashboard tabs / panels --------------------------------------------*/
+
+#dashboardTabs {
+  flex-wrap: wrap;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.panel-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filters input {
+  width: auto;
+  min-width: 120px;
+}
+
+/* ---- card grid ------------------------------------------------------------*/
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.card:hover {
+  transform: rotate(-0.4deg) translateY(-2px);
+}
+
+.card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+
+.card p {
+  margin: 2px 0;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.card .meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.status-pill {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  margin-top: 6px;
+}
+.status-pill.BOOKED { background: var(--seafoam); }
+.status-pill.CANCELLED { background: #e4c6c1; }
+.status-pill.COMPLETED { background: var(--ocean-light); }
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+  padding: 20px 4px;
+}
+
+/* ---- toast ---------------------------------------------------------------*/
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translate(-50%, 20px);
+  padding: 12px 22px;
+  font-size: 1rem;
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-c);
+  background: var(--paper-card);
+  box-shadow: 4px 5px 0 rgba(15, 76, 92, 0.25);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+  max-width: 90vw;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast.success { border-color: var(--success-dark); background: #e4f2e8; }
+.toast.error { border-color: var(--danger-dark); background: #f7e3e0; }
+
+/* ---- modal -----------------------------------------------------------------*/
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(34, 50, 63, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+}
+
+.modal-content {
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px 26px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.modal-content dl {
+  margin: 0;
+}
+.modal-content dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.modal-content dd {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+}
+
+/* ---- divider / wave -------------------------------------------------------*/
+
+.wave-divider {
+  display: block;
+  width: 100%;
+  height: 26px;
+  margin: 26px 0;
+}
+
+/* ---- responsive ------------------------------------------------------------*/
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .app-header { flex-direction: column; align-items: flex-start; }
+  .brand h1 { font-size: 1.7rem; }
+  .tabs { flex-wrap: wrap; }
+  .tab-btn { flex: 1 1 45%; }
+  .card-grid { grid-template-columns: 1fr; }
+  .form-row { flex-direction: column; }
+}
